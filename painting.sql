@@ -21,7 +21,6 @@ CREATE TABLE IF NOT EXISTS pics (
     pic_path VARCHAR(500), # path to external file store; paths for easier file movement/backup and performance reasons, could be dangerous to manage
     quality BOOLEAN, # need improvement state?
     fk_works_id INT,
-    #fk_revision_id INT 
     PRIMARY KEY (pic_id)
 );
 
