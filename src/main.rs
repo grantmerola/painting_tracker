@@ -5,7 +5,7 @@ use mysql;
 use mysql::Value;
 // mirror of our test db
 #[derive(Debug)]
-struct Books {
+struct Book {
 	bookid: i32,
 	title: String,
 	seriesid: i32,
@@ -25,35 +25,18 @@ fn main() {
 	 	// rust likes to wrap things so we take them out and  stuff it in a Vec of another useless type Value
 	 	let rows: Vec<Value> = row.unwrap().unwrap();
 	 	
-	 	// we set up a bunch of var that will carry our info out of the for loop, there is most certainly a more idiomatic way to do this
-	 	let mut bid: i32 = -1;
-	 	let mut tl: String = "".to_string();
-	 	let mut sid: i32 = -1;
-	 	let mut aid: i32 = -1;
-	 	
-	 	// a loop for each of our values in our row and getting a "real" value out and storing it in its program counterpart
-	 	for (index, row_value) in rows.iter().enumerate() {
-		 			
-		 			if index == 0 {	
-		 				// turn it to a string to get it out of weird types and parse into useful values
-		 				bid = row_value.as_sql(false).parse().unwrap();
-		 			}
-		 			else if index == 1 {
-		 				tl = row_value.as_sql(false)
-		 			}
-		 			else if index == 2 {
-		 				sid = row_value.as_sql(false).parse().unwrap();
-		 			} 
-		 			else if index == 3 {
-		 				aid = row_value.as_sql(false).parse().unwrap();
-		 			}
-
-		 }
-		//construct struct with our passed variables and push on to our list of books
-		list_of_books.push(Books{bookid: bid, title: tl, seriesid: sid, authorid: aid});
-	 	
+	 	//add book to list
+	 	list_of_books.push(
+	 		Book{
+	 			// turn it to a string to get it out of weird types and parse into useful values
+	 			bookid: rows[0].as_sql(false).parse().unwrap(), 
+	 			title: rows[1].as_sql(false).parse().unwrap(), 
+	 			seriesid: rows[2].as_sql(false).parse().unwrap(), 
+	 			authorid: rows[3].as_sql(false).parse().unwrap()
+	 		}
+	 	);	 	
 	 } ;
 	 //proof it was done
-	 println!("this is end vector: {:?}", list_of_books );
+	 println!("this is end vector of books: {:?}", list_of_books );
 	
 }
