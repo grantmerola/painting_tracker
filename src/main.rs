@@ -16,7 +16,14 @@ fn main() {
     //specify server info
     let connection_url = "mysql://root@localhost:3306/test";
 	// set up what i believe is a pool of connections to the sql server
-	let pool = mysql::Pool::new(connection_url).unwrap();
+	let pool = mysql::Pool::new(connection_url);
+
+	let pool = match pool {
+		Ok(poolcon) => poolcon,
+		Err(error) => {
+			panic!("panicked while trying to connect to server: {:?}", error)
+		},
+	};
 	// our vector of what will be rows
 	let mut list_of_books = Vec::new();
 	//black magic that then iterates over our rows but In a special Row type that is useless 
@@ -35,7 +42,7 @@ fn main() {
 	 			authorid: rows[3].as_sql(false).parse().unwrap()
 	 		}
 	 	);	 	
-	 } ;
+	 };
 	 //proof it was done
 	 println!("this is end vector of books: {:?}", list_of_books );
 	
