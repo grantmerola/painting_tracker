@@ -3,6 +3,8 @@
 
 use mysql;
 use mysql::Value;
+//use painting_tracker::*;
+
 // mirror of our test db
 #[derive(Debug)]
 struct Book {
@@ -44,6 +46,7 @@ fn main() {
 	 	);	 	
 	 };
 	 //proof it was done
-	 println!("this is end vector of books: {:?}", list_of_books );
-	
+	 //println!("this is end vector of books: {:?}", list_of_books );
+
+	println!("---------RAN---------");
 }
