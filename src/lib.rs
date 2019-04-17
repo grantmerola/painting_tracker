@@ -22,7 +22,7 @@ pub struct Pic<'a> {
 }
 
 #[derive(Debug)]
-pub struct Locations { 
+pub struct Location { 
 	location_date: Value,
 	location: String,
 	comment: String,
@@ -109,13 +109,13 @@ impl<'a> Pic<'a> {
 	    	apic
 		}
 }
-impl Locations {
+impl Location {
 	fn new( location_date: Value, 
 			location: String, 
 			comment: String, 
 			fk_works_id: i32,
 			pool: &Pool) 
-			-> Locations 
+			-> Location 
 		{
 			//good work_id
 			assert!(get_work_ids(&pool).contains(&fk_works_id));
@@ -125,7 +125,7 @@ impl Locations {
 				x
 			};
 			
-			let new_location = Locations{
+			let new_location = Location{
 				location_date: location_date,
 				location: size(location, 500),
 				comment: comment,
@@ -229,6 +229,32 @@ mod test {
 			bad_pic_path: Path::new("/Users/gm/Downloads/kurchunk.txt"),
 			pool: make_new_pool()
 		}
+	}
+	#[test]
+	#[ignore]
+	fn new_location_test() {
+		let x = vars();
+		let should_work = Location::new(x.adate,x.location,x.comment,x.fk_works_id, &x.pool);
+	}
+	#[test]
+	#[should_panic]
+	#[ignore]
+	fn bad_fk_id_location_test() {
+		let x = vars();
+		let wont_work = Location::new(x.adate,x.location,x.comment,x.bad_fk_id, &x.pool);
+	}
+	#[test]
+	#[ignore]
+	fn location_test() {
+		let x = vars();
+		let wont_work = Location::new(x.adate,x.str499,x.comment,x.fk_works_id, &x.pool);
+	}
+	#[test]
+	#[should_panic]
+	#[ignore]
+	fn location_test_fail() {
+		let x = vars();
+		let wont_work = Location::new(x.adate,x.str500,x.comment,x.fk_works_id, &x.pool);
 	}
 	#[test]
 	#[ignore]
