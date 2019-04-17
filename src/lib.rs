@@ -15,8 +15,7 @@ pub struct Work {
 }
 
 #[derive(Debug)]
-pub struct Pic<'a> {
-	
+pub struct Pic<'a> {	
 	quality: bool,
 	fk_works_id: i32,
 	pic_path: &'a Path
@@ -108,6 +107,43 @@ impl<'a> Pic<'a> {
 	            }).unwrap(); 
 	    	}
 	    	apic
+		}
+}
+impl Locations {
+	fn new( location_date: Value, 
+			location: String, 
+			comment: String, 
+			fk_works_id: i32,
+			pool: &Pool) 
+			-> Locations 
+		{
+			//good work_id
+			assert!(get_work_ids(&pool).contains(&fk_works_id));
+			
+			let size = |x: String,y|{ 
+				assert!( x.len() < y );
+				x
+			};
+			
+			let new_location = Locations{
+				location_date: location_date,
+				location: size(location, 500),
+				comment: comment,
+				fk_works_id: fk_works_id
+			};
+			for mut stmt in pool.prepare(r"INSERT INTO locations
+	                               (location_date,location,comment,fk_works_id)
+	                           VALUES
+	                               (:location_date,:location,:comment,:fk_works_id)").into_iter() {
+	       
+	            stmt.execute(params!{
+	                "location_date" => &new_location.location_date,
+	                "location" => &new_location.location,
+	                "comment" => &new_location.comment,
+	                "fk_works_id" => &new_location.fk_works_id
+	            }).unwrap();    
+    		}
+    		new_location
 		}
 }
 pub fn make_new_pool() -> Pool {
