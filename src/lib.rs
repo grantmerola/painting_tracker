@@ -41,16 +41,13 @@ impl Work {
 				pool: &Pool
 				) -> Work 
 		{
-
+		//closure that panics if string is bigger than given size
 		let size = |x: String,y|{ 
-				if x.len() < y {
-					return x
-				}
-				else {
-					panic!("to long");
-				}
+				assert!( x.len() < y );
+				x
 			};
-		let addedWork = Work {
+		//create work struct
+		let added_work = Work {
 			work_name: size(work_name,500),
 			creation_date: creation_date,
 			location: location,
@@ -59,28 +56,61 @@ impl Work {
 			medium: size(medium, 100),
 			comment: comment
 		};
-
+		//add new work to data base
 		for mut stmt in pool.prepare(r"INSERT INTO works
 			                               (work_name,creation_date,location,bequeathment,source,medium,comment)
 			                           VALUES
 			                               (:work_name, :creation_date, :location, :bequeathment, :source, :medium, :comment)").into_iter() {
 	       
             stmt.execute(params!{
-                "work_name" => &x.work_name,
-                "creation_date" => &x.creation_date,
-                "location" => &x.location,
-                "bequeathment" => &x.bequeathment,
-                "source" => &x.source,
-                "medium" => &x.medium,
-                "comment" => &x.comment
+                "work_name" => &added_work.work_name,
+                "creation_date" => &added_work.creation_date,
+                "location" => &added_work.location,
+                "bequeathment" => &added_work.bequeathment,
+                "source" => &added_work.source,
+                "medium" => &added_work.medium,
+                "comment" => &added_work.comment
             }).unwrap();    
     	}
 
-	addedWork
+	added_work
 	}
 }
-
-fn make_new_pool() -> Pool {
+impl<'a> Pic<'a> {
+	pub fn new( pic_path: &'a Path,
+				quality: bool,
+				fk_works_id: i32,
+				pool: &Pool
+				) -> Pic<'a>
+		{
+			// is existing id or panic	
+			assert!(get_work_ids(&pool).contains(&fk_works_id));
+			
+			//is good path or panic
+			assert!(Path::exists(pic_path));
+			assert!(Path::is_file(pic_path));
+	 		//create pic struct
+	 		let apic = Pic{
+				pic_path: pic_path,
+				quality: quality,
+				fk_works_id: fk_works_id
+			};
+			//add new pic to db
+			for mut stmt in pool.prepare(r"INSERT INTO pics
+				                               (pic_path,quality,fk_works_id)
+				                           VALUES
+				                               (:pic_path,:quality,:fk_works_id)").into_iter() {
+		       
+	            stmt.execute(params!{
+	                "pic_path" => &apic.pic_path.to_str().unwrap(),
+	                "quality" => &apic.quality,
+	                "fk_works_id" => &apic.fk_works_id
+	            }).unwrap(); 
+	    	}
+	    	apic
+		}
+}
+pub fn make_new_pool() -> Pool {
 	let connection_url = "mysql://root@localhost:3306/test";
 	
 	let pool = mysql::Pool::new(connection_url);
@@ -92,6 +122,21 @@ fn make_new_pool() -> Pool {
 		},
 	};
 	pool
+}
+pub fn get_work_ids(pool: &Pool) -> Vec<i32> {
+	
+	let mut ids: Vec<i32> = Vec::new();
+	
+	for row in pool.prep_exec(r"SELECT id FROM works;",()).unwrap() {
+	 						//get a vec out of a row
+	 	let new_i32: i32 =   row.unwrap().unwrap()
+	 							//get first and only column
+	 							.get(0).unwrap()
+	 							//get string make in to i32
+	 							.as_sql(false).parse().unwrap();
+	 	ids.push(new_i32); 	
+	 };
+	 ids
 }
 
 
@@ -109,7 +154,7 @@ fn make_new_pool() -> Pool {
 mod test {
 	use super::*;
 	#[derive(Debug)]
-	struct somevars {
+	struct somevars<'a> {
 		str499: String,
 		str500: String,
 		str100: String,
@@ -121,9 +166,14 @@ mod test {
 		medium: String,
 		location: String,
 		comment: String,
+		pic_path: &'a Path,
+		quality: bool,
+		fk_works_id: i32,
+		bad_fk_id: i32,
+		bad_pic_path: &'a Path,
 		pool: Pool
 	}
-	fn vars() -> somevars {
+	fn vars() -> somevars<'static> {
 		somevars{
 			str499: String::from("khgkhgkgkgkhgkhgkhgkhgkgkhgkgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkgkgkhgkhgkhgkhgkgkhgkhgkhgkgkhgkhkhlghvfhfghjhdgfsghjkfgfdghjkhjghfdgrhfjgkhjlkljhgfdghjkldfghjkl;jhgfhjkljhgfdjgkhgkfjtgkhlukgyfjchkjghjkugjuyghjkilouyghjkiuyfghuiytghjuytrfghuyt6ryfhgjkiurtydfghjliuytfghjuytfhgbkuyutfgcvbhkygfhgkjuygjhfnbhmkyfghkugjhkuygtfhgkuytfhgkuytfgghjgytrdgfhjytfhgjkuiygtfhjkgfhghjyj"),	
 			str500: String::from("dkhgkhgkgkgkhgkhgkhgkhgkgkhgkgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkgkgkhgkhgkhgkhgkgkhgkhgkhgkgkhgkhkhlghvfhfghjhdgfsghjkfgfdghjkhjghfdgrhfjgkhjlkljhgfdghjkldfghjkl;jhgfhjkljhgfdjgkhgkfjtgkhlukgyfjchkjghjkugjuyghjkilouyghjkiuyfghuiytghjuytrfghuyt6ryfhgjkiurtydfghjliuytfghjuytfhgbkuyutfgcvbhkygfhgkjuygjhfnbhmkyfghkugjhkuygtfhgkuytfhgkuytfgghjgytrdgfhjytfhgjkuiygtfhjkgfhghjyj"),
@@ -136,13 +186,43 @@ mod test {
 			medium: String::from("oil"),
 			location: String::from("portland"),
 			comment: String::from("what a work"),
+			pic_path: Path::new("/Users/gm/Downloads/colorinanything.jpg"),
+			quality: true,
+			fk_works_id: 1,
+			bad_fk_id: 500000,
+			bad_pic_path: Path::new("/Users/gm/Downloads/kurchunk.txt"),
 			pool: make_new_pool()
 		}
 	}
-	
-
 	#[test]
-	fn make_new() {
+	#[ignore]
+	fn get_work_ids_test() {
+		let x = vars();
+		let should_work = get_work_ids(&x.pool);
+	}
+	#[test]
+	#[ignore]
+	fn make_new_pic_test() {
+		let x = vars();
+		let should_work = Pic::new(x.pic_path, x.quality, x.fk_works_id, &x.pool);
+	}
+	#[test]
+	#[should_panic]
+	#[ignore]
+	fn bad_pic_path_test() {
+		let x = vars();
+		let wont_work = Pic::new(x.bad_pic_path, x.quality, x.fk_works_id, &x.pool);
+	}
+	#[test]
+	#[should_panic]
+	#[ignore]
+	fn bad_fk_id_test() {
+		let x = vars();
+		let wont_work = Pic::new(x.pic_path, x.quality,x.bad_fk_id, &x.pool);
+	}
+	#[test]
+	#[ignore]
+	fn make_new_work_test() {
 		let x = vars();
 		let should_work = Work::new(x.work_name,x.adate,x.location,x.bequeathment,x.source,x.medium,x.comment,&x.pool);
 	}
@@ -158,7 +238,7 @@ mod test {
 	#[ignore]
 	fn work_name_test_fail(){
 		let x = vars();
-		let should_work = Work::new(x.str500,x.adate,x.location,x.bequeathment,x.source,x.medium,x.comment,&x.pool);
+		let wont_work = Work::new(x.str500,x.adate,x.location,x.bequeathment,x.source,x.medium,x.comment,&x.pool);
 	}
 	#[test]	
 	#[ignore]
@@ -171,7 +251,7 @@ mod test {
 	#[ignore]
 	fn bequeth_test_fail() {
 		let x = vars();
-		let should_work = Work::new(x.work_name,x.adate,x.location,x.str500,x.source,x.medium,x.comment,&x.pool);
+		let wont_work = Work::new(x.work_name,x.adate,x.location,x.str500,x.source,x.medium,x.comment,&x.pool);
 	}
 	#[test]	
 	#[ignore]
@@ -184,7 +264,7 @@ mod test {
 	#[ignore]
 	fn source_test_fail() {
 		let x = vars();
-		let should_work = Work::new(x.work_name,x.adate,x.location,x.bequeathment,x.str500,x.medium,x.comment,&x.pool);
+		let wont_work = Work::new(x.work_name,x.adate,x.location,x.bequeathment,x.str500,x.medium,x.comment,&x.pool);
 	}
 	#[test]	
 	#[ignore]
@@ -197,6 +277,6 @@ mod test {
 	#[ignore]
 	fn medium_test_fail() {
 		let x = vars();
-		let should_work = Work::new(x.work_name,x.adate,x.location,x.bequeathment,x.source,x.str100,x.comment,&x.pool);
+		let wont_work = Work::new(x.work_name,x.adate,x.location,x.bequeathment,x.source,x.str100,x.comment,&x.pool);
 	}
 }
