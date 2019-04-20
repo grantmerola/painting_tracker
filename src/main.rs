@@ -1,31 +1,31 @@
 // This is how to use the db at least select hopefully insert should be easier 
 // just proof of concept  and opening for starting lib
-
-use mysql;
-//use mysql::Value;
-use painting_tracker::*;
-
+#[macro_use]
+extern crate diesel;
+extern crate painting_tracker;
+use diesel::prelude::*;
+use diesel::mysql::MysqlConnection;
+//use painting_tracker::*;
+mod schema;
+use schema::books::dsl::*;
+//use schema::books::*;
 // mirror of our test db
-// #[derive(Debug)]
-// struct Book {
-// 	bookid: i32,
-// 	title: String,
-// 	seriesid: i32,
-// 	authorid: i32
-// }
+#[derive(Queryable, Debug)]
+struct Book {
+	bookid: i32,
+	title: String,
+	seriesid: Option<i32>,
+	authorid: Option<i32>
+}
 
 fn main() {
- //    //specify server info
- //    let connection_url = "mysql://root@localhost:3306/test";
-	// // set up what i believe is a pool of connections to the sql server
-	// let pool = mysql::Pool::new(connection_url);
-
-	// let pool = match pool {
-	// 	Ok(poolcon) => poolcon,
-	// 	Err(error) => {
-	// 		panic!("panicked while trying to connect to server: {:?}", error)
-	// 	},
-	// };
+    
+    //specify server info
+  	let connection_url = "mysql://root@localhost:3306/test";
+	let conn = MysqlConnection::establish(connection_url).expect(&format!("Error connecting to {}", connection_url));
+	
+	let r: Vec<Book> = books.load::<Book>(&conn).unwrap();
+	println!("{:?}",r );
 	// // our vector of what will be rows
 	// let mut list_of_books = Vec::new();
 	// //black magic that then iterates over our rows but In a special Row type that is useless 
