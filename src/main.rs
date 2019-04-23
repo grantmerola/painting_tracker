@@ -10,7 +10,8 @@ mod schema;
 use schema::books::dsl::*;
 //use schema::books::*;
 // mirror of our test db
-#[derive(Queryable, Debug)]
+
+#[derive(Queryable,  Debug)]
 struct Book {
 	bookid: i32,
 	title: String,
@@ -25,28 +26,23 @@ fn main() {
 	let conn = MysqlConnection::establish(connection_url).expect(&format!("Error connecting to {}", connection_url));
 	
 	let r: Vec<Book> = books.load::<Book>(&conn).unwrap();
-	println!("{:?}",r );
-	// // our vector of what will be rows
-	// let mut list_of_books = Vec::new();
-	// //black magic that then iterates over our rows but In a special Row type that is useless 
-	// for row in pool.prep_exec(r"SELECT * FROM books;",()).unwrap() {
 
-	//  	// rust likes to wrap things so we take them out and  stuff it in a Vec of another useless type Value
-	//  	let rows: Vec<Value> = row.unwrap().unwrap();
-	 	
-	//  	//add book to list
-	//  	list_of_books.push(
-	//  		Book{
-	//  			// turn it to a string to get it out of weird types and parse into useful values
-	//  			bookid: rows[0].as_sql(false).parse().unwrap(), 
-	//  			title: rows[1].as_sql(false).parse().unwrap(), 
-	//  			seriesid: rows[2].as_sql(false).parse().unwrap(), 
-	//  			authorid: rows[3].as_sql(false).parse().unwrap()
-	//  		}
-	//  	);	 	
-	//  };
-	//  //proof it was done
-	//  //println!("this is end vector of books: {:?}", list_of_books );
+	println!("{:?}",r );
+
+	let tb = Book {
+		bookid: 42,
+		title: String::from("The Hitchhikers Guide to the Galaxy"),
+		seriesid: Some(42),
+		authorid: Some(43)
+	};
+	let d = diesel::insert_into(books)
+					.values((
+							Title.eq(tb.title),
+							SeriesID.eq(tb.seriesid),
+							AuthorID.eq(tb.authorid)
+							));
+					//.execute(&conn);
+	println!("{:?}",d );
 	
 	println!("---------RAN---------");
 }
