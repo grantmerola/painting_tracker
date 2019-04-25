@@ -7,7 +7,6 @@ use std::path::Path;
 pub struct Work {
 	work_name: String,
 	creation_date: Value,
-	location: String,
 	bequeathment: String,
 	source: String,
 	medium:String,
@@ -32,7 +31,6 @@ pub struct Location {
 impl Work {
 	pub fn new( work_name: String,
 				creation_date: Value,
-				location: String,
 				bequeathment: String,
 				source: String,
 				medium:String,
@@ -49,7 +47,6 @@ impl Work {
 		let added_work = Work {
 			work_name: size(work_name,500),
 			creation_date: creation_date,
-			location: location,
 			bequeathment: size(bequeathment, 500),
 			source: size(source, 500),
 			medium: size(medium, 100),
@@ -57,14 +54,13 @@ impl Work {
 		};
 		//add new work to data base
 		for mut stmt in pool.prepare(r"INSERT INTO works
-			                               (work_name,creation_date,location,bequeathment,source,medium,comment)
+			                               (work_name,creation_date,bequeathment,source,medium,comment)
 			                           VALUES
-			                               (:work_name, :creation_date, :location, :bequeathment, :source, :medium, :comment)").into_iter() {
+			                               (:work_name, :creation_date, :bequeathment, :source, :medium, :comment)").into_iter() {
 	       
             stmt.execute(params!{
                 "work_name" => &added_work.work_name,
                 "creation_date" => &added_work.creation_date,
-                "location" => &added_work.location,
                 "bequeathment" => &added_work.bequeathment,
                 "source" => &added_work.source,
                 "medium" => &added_work.medium,
@@ -286,59 +282,59 @@ mod test {
 	#[ignore]
 	fn make_new_work_test() {
 		let x = vars();
-		let should_work = Work::new(x.work_name,x.adate,x.location,x.bequeathment,x.source,x.medium,x.comment,&x.pool);
+		let should_work = Work::new(x.work_name,x.adate,x.bequeathment,x.source,x.medium,x.comment,&x.pool);
 	}
 	
 	#[test]
 	#[ignore]
 	fn work_name_test(){
 		let x = vars();
-		let should_work = Work::new(x.str499,x.adate,x.location,x.bequeathment,x.source,x.medium,x.comment,&x.pool);
+		let should_work = Work::new(x.str499,x.adate,x.bequeathment,x.source,x.medium,x.comment,&x.pool);
 	}
 	#[test]
 	#[should_panic]
 	#[ignore]
 	fn work_name_test_fail(){
 		let x = vars();
-		let wont_work = Work::new(x.str500,x.adate,x.location,x.bequeathment,x.source,x.medium,x.comment,&x.pool);
+		let wont_work = Work::new(x.str500,x.adate,x.bequeathment,x.source,x.medium,x.comment,&x.pool);
 	}
 	#[test]	
 	#[ignore]
 	fn bequeth_test() {
 		let x = vars();
-		let should_work = Work::new(x.work_name,x.adate,x.location,x.str499,x.source,x.medium,x.comment,&x.pool);
+		let should_work = Work::new(x.work_name,x.adate,x.str499,x.source,x.medium,x.comment,&x.pool);
 	}
 	#[test]
 	#[should_panic]
 	#[ignore]
 	fn bequeth_test_fail() {
 		let x = vars();
-		let wont_work = Work::new(x.work_name,x.adate,x.location,x.str500,x.source,x.medium,x.comment,&x.pool);
+		let wont_work = Work::new(x.work_name,x.adate,x.str500,x.source,x.medium,x.comment,&x.pool);
 	}
 	#[test]	
 	#[ignore]
 	fn source_test() {
 		let x = vars();
-		let should_work = Work::new(x.work_name,x.adate,x.location,x.bequeathment,x.str499,x.medium,x.comment,&x.pool);
+		let should_work = Work::new(x.work_name,x.adate,x.bequeathment,x.str499,x.medium,x.comment,&x.pool);
 	}
 	#[test]
 	#[should_panic]
 	#[ignore]
 	fn source_test_fail() {
 		let x = vars();
-		let wont_work = Work::new(x.work_name,x.adate,x.location,x.bequeathment,x.str500,x.medium,x.comment,&x.pool);
+		let wont_work = Work::new(x.work_name,x.adate,x.bequeathment,x.str500,x.medium,x.comment,&x.pool);
 	}
 	#[test]	
 	#[ignore]
 	fn medium_test() {
 		let x = vars();
-		let should_work = Work::new(x.work_name,x.adate,x.location,x.bequeathment,x.source,x.str99,x.comment,&x.pool);
+		let should_work = Work::new(x.work_name,x.adate,x.bequeathment,x.source,x.str99,x.comment,&x.pool);
 	}
 	#[test]
 	#[should_panic]
 	#[ignore]
 	fn medium_test_fail() {
 		let x = vars();
-		let wont_work = Work::new(x.work_name,x.adate,x.location,x.bequeathment,x.source,x.str100,x.comment,&x.pool);
+		let wont_work = Work::new(x.work_name,x.adate,x.bequeathment,x.source,x.str100,x.comment,&x.pool);
 	}
 }
