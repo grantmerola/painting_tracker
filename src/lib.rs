@@ -1,18 +1,23 @@
-// use mysql::Pool;
-// use mysql::params;
-// use mysql::Value;
-// use std::path::Path;
+#[macro_use]
+extern crate diesel;
+use diesel::prelude::*;
+use diesel::mysql::MysqlConnection;
+mod schema;
+use diesel::sql_types::Date;
+use std::path::Path;
+extern crate chrono;
+use chrono::NaiveDate;
 
 // #[derive(Debug)]
-// pub struct Work {
-// 	work_name: String,
-// 	creation_date: Value,
-// 	location: String,
-// 	bequeathment: String,
-// 	source: String,
-// 	medium:String,
-// 	comment: String
-// }
+pub struct Work {
+	struct_work_name: String,
+	struct_creation_date: Date,
+	struct_location: String,
+	struct_bequeathment: String,
+	struct_source: String,
+	struct_medium:String,
+	struct_comment: String
+}
 
 // #[derive(Debug)]
 // pub struct Pic<'a> {	
@@ -23,58 +28,60 @@
 
 // #[derive(Debug)]
 // pub struct Location { 
-// 	location_date: Value,
+// 	location_date: MysqlType,
 // 	location: String,
 // 	comment: String,
 // 	fk_works_id: i32 
 // }
 
-// impl Work {
-// 	pub fn new( work_name: String,
-// 				creation_date: Value,
-// 				location: String,
-// 				bequeathment: String,
-// 				source: String,
-// 				medium:String,
-// 				comment: String,
-// 				pool: &Pool
-// 				) -> Work 
-// 		{
-// 		//closure that panics if string is bigger than given size
-// 		let size = |x: String,y|{ 
-// 				assert!( x.len() < y );
-// 				x
-// 			};
-// 		//create work struct
-// 		let added_work = Work {
-// 			work_name: size(work_name,500),
-// 			creation_date: creation_date,
-// 			location: location,
-// 			bequeathment: size(bequeathment, 500),
-// 			source: size(source, 500),
-// 			medium: size(medium, 100),
-// 			comment: comment
-// 		};
-// 		//add new work to data base
-// 		for mut stmt in pool.prepare(r"INSERT INTO works
-// 			                               (work_name,creation_date,location,bequeathment,source,medium,comment)
-// 			                           VALUES
-// 			                               (:work_name, :creation_date, :location, :bequeathment, :source, :medium, :comment)").into_iter() {
-	       
-//             stmt.execute(params!{
-//                 "work_name" => &added_work.work_name,
-//                 "creation_date" => &added_work.creation_date,
-//                 "location" => &added_work.location,
-//                 "bequeathment" => &added_work.bequeathment,
-//                 "source" => &added_work.source,
-//                 "medium" => &added_work.medium,
-//                 "comment" => &added_work.comment
-//             }).unwrap();    
-//     	}
+impl Work {
+	pub fn new( struct_work_name: String,
+				struct_creation_date: Date,
+				struct_location: String,
+				struct_bequeathment: String,
+				struct_source: String,
+				struct_medium:String,
+				struct_comment: String,
+				conn: &MysqlConnection
+				) -> Work 
+		{
+		
+		
+		//closure that panics if string is bigger than given size
+		let size = |x: String,y|{ 
+				assert!( x.len() < y );
+				x
+			};
+		//create work struct
+		let added_work = Work {
+			struct_work_name: size(struct_work_name,500),
+			struct_creation_date: struct_creation_date,
+			struct_location: struct_location,
+			struct_bequeathment: size(struct_bequeathment, 500),
+			struct_source: size(struct_source, 500),
+			struct_medium: size(struct_medium, 100),
+			struct_comment: struct_comment
+		};
+		use schema::works::dsl::*;
+		//add new work to data base
+		println!("{:?}",&added_work.struct_creation_date );
+		let r = diesel::insert_into(works)
+				.values(
+					(
+				        work_name.eq(&added_work.struct_work_name),
+				        // creation_date.eq(&added_work.struct_creation_date.FromSql()),
+				        location.eq(&added_work.struct_location),
+				        bequeathment.eq(&added_work.struct_bequeathment),
+				        source.eq(&added_work.struct_source),
+				        medium.eq(&added_work.struct_medium),
+				        comment.eq(&added_work.struct_comment)
+					)
+				)
+				.execute(conn);
 
-// 	added_work
-// 	}
-// }
+	added_work
+	}
+}
 // impl<'a> Pic<'a> {
 // 	pub fn new( pic_path: &'a Path,
 // 				quality: bool,
@@ -146,19 +153,11 @@
 //     		new_location
 // 		}
 // }
-// pub fn make_new_pool() -> Pool {
-// 	let connection_url = "mysql://root@localhost:3306/test";
-	
-// 	let pool = mysql::Pool::new(connection_url);
-
-// 	let pool = match pool {
-// 		Ok(poolcon) => poolcon,
-// 		Err(error) => {
-// 			panic!("panicked while trying to connect to server: {:?}", error)
-// 		},
-// 	};
-// 	pool
-// }
+pub fn make_new_pool() -> MysqlConnection {
+  	let connection_url = "mysql://root@localhost:3306/test";
+	let conn = MysqlConnection::establish(connection_url).expect(&format!("Error connecting to {}", connection_url));
+	conn
+}
 // pub fn get_work_ids(pool: &Pool) -> Vec<i32> {
 	
 // 	let mut ids: Vec<i32> = Vec::new();
@@ -186,50 +185,49 @@
 
 
 // //------------------------------------Tests------------------------------------
-// #[cfg(test)]
-// mod test {
-// 	use super::*;
-// 	#[derive(Debug)]
-// 	struct somevars<'a> {
-// 		str499: String,
-// 		str500: String,
-// 		str100: String,
-// 		str99: String,
-// 		adate: Value,
-// 		work_name: String,
-// 		bequeathment: String,
-// 		source: String,
-// 		medium: String,
-// 		location: String,
-// 		comment: String,
-// 		pic_path: &'a Path,
-// 		quality: bool,
-// 		fk_works_id: i32,
-// 		bad_fk_id: i32,
-// 		bad_pic_path: &'a Path,
-// 		pool: Pool
-// 	}
-// 	fn vars() -> somevars<'static> {
-// 		somevars{
-// 			str499: String::from("khgkhgkgkgkhgkhgkhgkhgkgkhgkgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkgkgkhgkhgkhgkhgkgkhgkhgkhgkgkhgkhkhlghvfhfghjhdgfsghjkfgfdghjkhjghfdgrhfjgkhjlkljhgfdghjkldfghjkl;jhgfhjkljhgfdjgkhgkfjtgkhlukgyfjchkjghjkugjuyghjkilouyghjkiuyfghuiytghjuytrfghuyt6ryfhgjkiurtydfghjliuytfghjuytfhgbkuyutfgcvbhkygfhgkjuygjhfnbhmkyfghkugjhkuygtfhgkuytfhgkuytfgghjgytrdgfhjytfhgjkuiygtfhjkgfhghjyj"),	
-// 			str500: String::from("dkhgkhgkgkgkhgkhgkhgkhgkgkhgkgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkgkgkhgkhgkhgkhgkgkhgkhgkhgkgkhgkhkhlghvfhfghjhdgfsghjkfgfdghjkhjghfdgrhfjgkhjlkljhgfdghjkldfghjkl;jhgfhjkljhgfdjgkhgkfjtgkhlukgyfjchkjghjkugjuyghjkilouyghjkiuyfghuiytghjuytrfghuyt6ryfhgjkiurtydfghjliuytfghjuytfhgbkuyutfgcvbhkygfhgkjuygjhfnbhmkyfghkugjhkuygtfhgkuytfhgkuytfgghjgytrdgfhjytfhgjkuiygtfhjkgfhghjyj"),
-// 			str100: String::from("sdkhgkhgkgkgkhgkhgkhgkhgkgkhgkgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhg"),
-// 			str99: String::from("dkhgkhgkgkgkhgkhgkhgkhgkgkhgkgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhg"),
-// 			adate: Value::Date(1994,0,0,0,0,0,0),
-// 			work_name: String::from("atitle"),
-// 			bequeathment: String::from("burned"),
-// 			source: String::from("Montana"),
-// 			medium: String::from("oil"),
-// 			location: String::from("portland"),
-// 			comment: String::from("what a work"),
-// 			pic_path: Path::new("/Users/gm/Downloads/colorinanything.jpg"),
-// 			quality: true,
-// 			fk_works_id: 1,
-// 			bad_fk_id: 500000,
-// 			bad_pic_path: Path::new("/Users/gm/Downloads/kurchunk.txt"),
-// 			pool: make_new_pool()
-// 		}
-// 	}
+#[cfg(test)]
+mod test {
+	use super::*;
+	struct somevars<'a> {
+		str499: String,
+		str500: String,
+		str100: String,
+		str99: String,
+		adate: Date,
+		work_name: String,
+		bequeathment: String,
+		source: String,
+		medium: String,
+		location: String,
+		comment: String,
+		pic_path: &'a Path,
+		quality: bool,
+		fk_works_id: i32,
+		bad_fk_id: i32,
+		bad_pic_path: &'a Path,
+		pool: MysqlConnection
+	}
+	fn vars() -> somevars<'static> {
+		somevars{
+			str499: String::from("khgkhgkgkgkhgkhgkhgkhgkgkhgkgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkgkgkhgkhgkhgkhgkgkhgkhgkhgkgkhgkhkhlghvfhfghjhdgfsghjkfgfdghjkhjghfdgrhfjgkhjlkljhgfdghjkldfghjkl;jhgfhjkljhgfdjgkhgkfjtgkhlukgyfjchkjghjkugjuyghjkilouyghjkiuyfghuiytghjuytrfghuyt6ryfhgjkiurtydfghjliuytfghjuytfhgbkuyutfgcvbhkygfhgkjuygjhfnbhmkyfghkugjhkuygtfhgkuytfhgkuytfgghjgytrdgfhjytfhgjkuiygtfhjkgfhghjyj"),	
+			str500: String::from("dkhgkhgkgkgkhgkhgkhgkhgkgkhgkgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkhgkgkgkhgkhgkhgkhgkgkhgkhgkhgkgkhgkhkhlghvfhfghjhdgfsghjkfgfdghjkhjghfdgrhfjgkhjlkljhgfdghjkldfghjkl;jhgfhjkljhgfdjgkhgkfjtgkhlukgyfjchkjghjkugjuyghjkilouyghjkiuyfghuiytghjuytrfghuyt6ryfhgjkiurtydfghjliuytfghjuytfhgbkuyutfgcvbhkygfhgkjuygjhfnbhmkyfghkugjhkuygtfhgkuytfhgkuytfgghjgytrdgfhjytfhgjkuiygtfhjkgfhghjyj"),
+			str100: String::from("sdkhgkhgkgkgkhgkhgkhgkhgkgkhgkgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhg"),
+			str99: String::from("dkhgkhgkgkgkhgkhgkhgkhgkgkhgkgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhgkhgkhgkhgkhgkhgkhgkhgkgkhg"),
+			adate: Date= NaiveDate::from_ymd(1996,3,13),
+			work_name: String::from("atitle"),
+			bequeathment: String::from("burned"),
+			source: String::from("Montana"),
+			medium: String::from("oil"),
+			location: String::from("portland"),
+			comment: String::from("what a work"),
+			pic_path: Path::new("/Users/gm/Downloads/colorinanything.jpg"),
+			quality: true,
+			fk_works_id: 1,
+			bad_fk_id: 500000,
+			bad_pic_path: Path::new("/Users/gm/Downloads/kurchunk.txt"),
+			pool: make_new_pool()
+		}
+	}
 // 	#[test]
 // 	#[ignore]
 // 	fn new_location_test() {
@@ -282,12 +280,12 @@
 // 		let x = vars();
 // 		let wont_work = Pic::new(x.pic_path, x.quality,x.bad_fk_id, &x.pool);
 // 	}
-// 	#[test]
-// 	#[ignore]
-// 	fn make_new_work_test() {
-// 		let x = vars();
-// 		let should_work = Work::new(x.work_name,x.adate,x.location,x.bequeathment,x.source,x.medium,x.comment,&x.pool);
-// 	}
+	#[test]
+	#[ignore]
+	fn make_new_work_test() {
+		let x = vars();
+		let should_work = Work::new(x.work_name,x.adate,x.location,x.bequeathment,x.source,x.medium,x.comment,&x.pool);
+	}
 	
 // 	#[test]
 // 	#[ignore]
@@ -341,4 +339,4 @@
 // 		let x = vars();
 // 		let wont_work = Work::new(x.work_name,x.adate,x.location,x.bequeathment,x.source,x.str100,x.comment,&x.pool);
 // 	}
-// }
+}
