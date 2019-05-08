@@ -3,14 +3,12 @@ extern crate diesel;
 use diesel::prelude::*;
 use diesel::mysql::MysqlConnection;
 mod schema;
-//use diesel::sql_types::Date;
 use std::path::Path;
-
 extern crate chrono;
 use chrono::NaiveDate;
 
 
-// #[derive(Debug)]
+#[derive(Debug)]
 pub struct Work {
 	struct_work_name: String,
 	struct_creation_date: NaiveDate,
@@ -21,29 +19,29 @@ pub struct Work {
 	struct_comment: String
 }
 
-// #[derive(Debug)]
-// pub struct Pic<'a> {	
-// 	quality: bool,
-// 	fk_works_id: i32,
-// 	pic_path: &'a Path
-// }
+#[derive(Debug)]
+pub struct Pic<'a> {	
+	struct_quality: bool,
+	struct_fk_works_id: i32,
+	struct_pic_path: &'a Path
+}
 
-// #[derive(Debug)]
-// pub struct Location { 
-// 	location_date: MysqlType,
-// 	location: String,
-// 	comment: String,
-// 	fk_works_id: i32 
-// }
+#[derive(Debug)]
+pub struct Location { 
+	struct_location_date: NaiveDate,
+	struct_location: String,
+	struct_comment: String,
+	struct_fk_works_id: i32 
+}
 
 impl Work {
-	pub fn new( struct_work_name: String,
-				struct_creation_date: NaiveDate,
-				struct_location: String,
-				struct_bequeathment: String,
-				struct_source: String,
-				struct_medium:String,
-				struct_comment: String,
+	pub fn new( param_work_name: String,
+				param_creation_date: NaiveDate,
+				param_location: String,
+				param_bequeathment: String,
+				param_source: String,
+				param_medium:String,
+				param_comment: String,
 				conn: &MysqlConnection
 				) -> Work 
 		{
@@ -56,17 +54,16 @@ impl Work {
 			};
 		//create work struct
 		let added_work = Work {
-			struct_work_name: size(struct_work_name,500),
-			struct_creation_date: struct_creation_date,
-			struct_location: struct_location,
-			struct_bequeathment: size(struct_bequeathment, 500),
-			struct_source: size(struct_source, 500),
-			struct_medium: size(struct_medium, 100),
-			struct_comment: struct_comment
+			struct_work_name: size(param_work_name,500),
+			struct_creation_date: param_creation_date,
+			struct_location: param_location,
+			struct_bequeathment: size(param_bequeathment, 500),
+			struct_source: size(param_source, 500),
+			struct_medium: size(param_medium, 100),
+			struct_comment: param_comment
 		};
 		use schema::works::dsl::*;
 		//add new work to data base
-		println!("{:?}",&added_work.struct_creation_date );
 		let r = diesel::insert_into(works)
 				.values(
 					(
@@ -84,77 +81,75 @@ impl Work {
 	added_work
 	}
 }
-// impl<'a> Pic<'a> {
-// 	pub fn new( pic_path: &'a Path,
-// 				quality: bool,
-// 				fk_works_id: i32,
-// 				pool: &Pool
-// 				) -> Pic<'a>
-// 		{
-// 			// is existing id or panic	
-// 			assert!(get_work_ids(&pool).contains(&fk_works_id));
+impl<'a> Pic<'a> {
+	pub fn new( param_pic_path: &'a Path,
+				param_quality: bool,
+				param_fk_works_id: i32,
+				conn: &MysqlConnection
+				) -> Pic<'a>
+		{
+			// is existing id or panic	
+			//assert!(get_work_ids(&pool).contains(&param_fk_works_id));
 			
-// 			//is good path or panic
-// 			assert!(Path::exists(pic_path));
-// 			assert!(Path::is_file(pic_path));
-// 	 		//create pic struct
-// 	 		let apic = Pic{
-// 				pic_path: pic_path,
-// 				quality: quality,
-// 				fk_works_id: fk_works_id
-// 			};
-// 			//add new pic to db
-// 			for mut stmt in pool.prepare(r"INSERT INTO pics
-// 				                               (pic_path,quality,fk_works_id)
-// 				                           VALUES
-// 				                               (:pic_path,:quality,:fk_works_id)").into_iter() {
-		       
-// 	            stmt.execute(params!{
-// 	                "pic_path" => &apic.pic_path.to_str().unwrap(),
-// 	                "quality" => &apic.quality,
-// 	                "fk_works_id" => &apic.fk_works_id
-// 	            }).unwrap(); 
-// 	    	}
-// 	    	apic
-// 		}
-// }
-// impl Location {
-// 	fn new( location_date: Value, 
-// 			location: String, 
-// 			comment: String, 
-// 			fk_works_id: i32,
-// 			pool: &Pool) 
-// 			-> Location 
-// 		{
-// 			//good work_id
-// 			assert!(get_work_ids(&pool).contains(&fk_works_id));
+			//is good path or panic
+			assert!(Path::exists(param_pic_path));
+			assert!(Path::is_file(param_pic_path));
+	 		//create pic struct
+	 		let apic = Pic{
+				struct_pic_path: param_pic_path,
+				struct_quality: param_quality,
+				struct_fk_works_id: param_fk_works_id
+			};
+			use schema::pics::dsl::*;
+			//add new pic to db
+			let r = diesel::insert_into(pics)
+				.values(
+					(
+				        pic_path.eq(&apic.struct_pic_path.to_str().unwrap()),
+				        quality.eq(&apic.struct_quality),
+				        fk_works_id.eq(&apic.struct_fk_works_id)
+					)
+				)
+				.execute(conn);
+	    	apic
+		}
+}
+impl Location {
+	fn new( param_location_date: NaiveDate, 
+			param_location: String, 
+			param_comment: String, 
+			param_fk_works_id: i32,
+			conn: &MysqlConnection) 
+			-> Location 
+		{
+			//good work_id
+			//assert!(get_work_ids(&pool).contains(&param_fk_works_id));
 			
-// 			let size = |x: String,y|{ 
-// 				assert!( x.len() < y );
-// 				x
-// 			};
+			let size = |x: String,y|{ 
+				assert!( x.len() < y );
+				x
+			};
 			
-// 			let new_location = Location{
-// 				location_date: location_date,
-// 				location: size(location, 500),
-// 				comment: comment,
-// 				fk_works_id: fk_works_id
-// 			};
-// 			for mut stmt in pool.prepare(r"INSERT INTO locations
-// 	                               (location_date,location,comment,fk_works_id)
-// 	                           VALUES
-// 	                               (:location_date,:location,:comment,:fk_works_id)").into_iter() {
-	       
-// 	            stmt.execute(params!{
-// 	                "location_date" => &new_location.location_date,
-// 	                "location" => &new_location.location,
-// 	                "comment" => &new_location.comment,
-// 	                "fk_works_id" => &new_location.fk_works_id
-// 	            }).unwrap();    
-//     		}
-//     		new_location
-// 		}
-// }
+			let new_location = Location{
+				struct_location_date: param_location_date,
+				struct_location: size(param_location, 500),
+				struct_comment: param_comment,
+				struct_fk_works_id: param_fk_works_id
+			};
+			use schema::locations::dsl::*;
+			let r = diesel::insert_into(locations)
+				.values(
+					(
+				        location_date.eq(&new_location.struct_location_date),
+				        location.eq(&new_location.struct_location),
+				        comment.eq(&new_location.struct_comment),
+				        fk_works_id.eq(&new_location.struct_fk_works_id)
+					)
+				)
+				.execute(conn);
+    		new_location
+		}
+}
 pub fn make_new_pool() -> MysqlConnection {
   	let connection_url = "mysql://root@localhost:3306/test";
 	let conn = MysqlConnection::establish(connection_url).expect(&format!("Error connecting to {}", connection_url));
@@ -186,7 +181,7 @@ pub fn make_new_pool() -> MysqlConnection {
 
 
 
-// //------------------------------------Tests------------------------------------
+//------------------------------------Tests------------------------------------
 #[cfg(test)]
 mod test {
 	use super::*;
