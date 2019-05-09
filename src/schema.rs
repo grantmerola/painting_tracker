@@ -60,6 +60,15 @@ table! {
         comment -> Nullable<Mediumtext>,
     }
 }
+table!{
+    locations (location_id){
+        location_id -> Unsigned<Integer>,
+        location_date -> Nullable<Date>,
+        location -> Nullable<Text>,
+        comment -> Nullable<Mediumtext>,
+        fk_works_id -> Nullable<Integer>,
+    }
+}
 
 allow_tables_to_appear_in_same_query!(
     authors,

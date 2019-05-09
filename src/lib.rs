@@ -34,6 +34,18 @@ pub struct Location {
 	struct_fk_works_id: i32 
 }
 
+#[derive(Queryable,  Debug)]
+pub struct works{
+        id: u32,
+        work_name: String,
+        creation_date: NaiveDate,
+        location: String,
+        bequeathment: String,
+        source: String,
+        medium: String,
+        comment: String,
+    }
+
 impl Work {
 	pub fn new( param_work_name: String,
 				param_creation_date: NaiveDate,
@@ -64,7 +76,7 @@ impl Work {
 		};
 		use schema::works::dsl::*;
 		//add new work to data base
-		let r = diesel::insert_into(works)
+		let _r = diesel::insert_into(works)
 				.values(
 					(
 				        work_name.eq(&added_work.struct_work_name),
@@ -89,7 +101,7 @@ impl<'a> Pic<'a> {
 				) -> Pic<'a>
 		{
 			// is existing id or panic	
-			//assert!(get_work_ids(&pool).contains(&param_fk_works_id));
+			assert!(check_work_id(&conn, param_fk_works_id));
 			
 			//is good path or panic
 			assert!(Path::exists(param_pic_path));
@@ -102,7 +114,7 @@ impl<'a> Pic<'a> {
 			};
 			use schema::pics::dsl::*;
 			//add new pic to db
-			let r = diesel::insert_into(pics)
+			let _r = diesel::insert_into(pics)
 				.values(
 					(
 				        pic_path.eq(&apic.struct_pic_path.to_str().unwrap()),
@@ -123,7 +135,7 @@ impl Location {
 			-> Location 
 		{
 			//good work_id
-			//assert!(get_work_ids(&pool).contains(&param_fk_works_id));
+			assert!(check_work_id(&conn, param_fk_works_id));
 			
 			let size = |x: String,y|{ 
 				assert!( x.len() < y );
@@ -137,7 +149,7 @@ impl Location {
 				struct_fk_works_id: param_fk_works_id
 			};
 			use schema::locations::dsl::*;
-			let r = diesel::insert_into(locations)
+			let _r = diesel::insert_into(locations)
 				.values(
 					(
 				        location_date.eq(&new_location.struct_location_date),
@@ -155,21 +167,17 @@ pub fn make_new_pool() -> MysqlConnection {
 	let conn = MysqlConnection::establish(connection_url).expect(&format!("Error connecting to {}", connection_url));
 	conn
 }
-// pub fn get_work_ids(pool: &Pool) -> Vec<i32> {
+pub fn check_work_id(conn: &MysqlConnection, a_id: i32) -> bool {
+	use schema::works::dsl::*;
+
+	let a_id = a_id as u32;
 	
-// 	let mut ids: Vec<i32> = Vec::new();
+	let return_value = works.find(a_id).execute(conn).unwrap();
 	
-// 	for row in pool.prep_exec(r"SELECT id FROM works;",()).unwrap() {
-// 	 						//get a vec out of a row
-// 	 	let new_i32: i32 =   row.unwrap().unwrap()
-// 	 							//get first and only column
-// 	 							.get(0).unwrap()
-// 	 							//get string make in to i32
-// 	 							.as_sql(false).parse().unwrap();
-// 	 	ids.push(new_i32); 	
-// 	 };
-// 	 ids
-// }
+	let return_value = return_value != 0;
+
+	return_value
+}
 
 
 
