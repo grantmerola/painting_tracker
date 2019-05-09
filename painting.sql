@@ -6,8 +6,7 @@ USE paintings;
 CREATE TABLE IF NOT EXISTS works (
 	id INT UNSIGNED AUTO_INCREMENT, 
 	work_name VARCHAR(500),
-	creation_date DATE, # primarily year
-	location TEXT, # who has it or last known location
+	creation_date DATE, # primarily year	
 	bequeathment VARCHAR(500),
 	source VARCHAR(500), #what or where is this a painting of
 	medium VARCHAR(100), #what is this work made of

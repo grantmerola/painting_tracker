@@ -12,7 +12,6 @@ use chrono::NaiveDate;
 pub struct Work {
 	struct_work_name: String,
 	struct_creation_date: NaiveDate,
-	struct_location: String,
 	struct_bequeathment: String,
 	struct_source: String,
 	struct_medium:String,
@@ -47,14 +46,15 @@ pub struct works{
     }
 
 impl Work {
+
 	pub fn new( param_work_name: String,
 				param_creation_date: NaiveDate,
-				param_location: String,
 				param_bequeathment: String,
 				param_source: String,
 				param_medium:String,
 				param_comment: String,
 				conn: &MysqlConnection
+
 				) -> Work 
 		{
 		
@@ -68,20 +68,20 @@ impl Work {
 		let added_work = Work {
 			struct_work_name: size(param_work_name,500),
 			struct_creation_date: param_creation_date,
-			struct_location: param_location,
 			struct_bequeathment: size(param_bequeathment, 500),
 			struct_source: size(param_source, 500),
 			struct_medium: size(param_medium, 100),
 			struct_comment: param_comment
+
 		};
 		use schema::works::dsl::*;
 		//add new work to data base
+
 		let _r = diesel::insert_into(works)
 				.values(
 					(
 				        work_name.eq(&added_work.struct_work_name),
 				        creation_date.eq(&added_work.struct_creation_date),
-				        location.eq(&added_work.struct_location),
 				        bequeathment.eq(&added_work.struct_bequeathment),
 				        source.eq(&added_work.struct_source),
 				        medium.eq(&added_work.struct_medium),
@@ -89,6 +89,7 @@ impl Work {
 					)
 				)
 				.execute(conn);
+
 
 	added_work
 	}
@@ -289,59 +290,59 @@ mod test {
 	#[ignore]
 	fn make_new_work_test() {
 		let x = vars();
-		let should_work = Work::new(x.work_name,x.adate,x.location,x.bequeathment,x.source,x.medium,x.comment,&x.pool);
+		let should_work = Work::new(x.work_name,x.adate,x.bequeathment,x.source,x.medium,x.comment,&x.pool);
 	}
 	
 	#[test]
 	#[ignore]
 	fn work_name_test(){
 		let x = vars();
-		let should_work = Work::new(x.str499,x.adate,x.location,x.bequeathment,x.source,x.medium,x.comment,&x.pool);
+		let should_work = Work::new(x.str499,x.adate,x.bequeathment,x.source,x.medium,x.comment,&x.pool);
 	}
 	#[test]
 	#[should_panic]
 	#[ignore]
 	fn work_name_test_fail(){
 		let x = vars();
-		let wont_work = Work::new(x.str500,x.adate,x.location,x.bequeathment,x.source,x.medium,x.comment,&x.pool);
+		let wont_work = Work::new(x.str500,x.adate,x.bequeathment,x.source,x.medium,x.comment,&x.pool);
 	}
 	#[test]	
 	#[ignore]
 	fn bequeth_test() {
 		let x = vars();
-		let should_work = Work::new(x.work_name,x.adate,x.location,x.str499,x.source,x.medium,x.comment,&x.pool);
+		let should_work = Work::new(x.work_name,x.adate,x.str499,x.source,x.medium,x.comment,&x.pool);
 	}
 	#[test]
 	#[should_panic]
 	#[ignore]
 	fn bequeth_test_fail() {
 		let x = vars();
-		let wont_work = Work::new(x.work_name,x.adate,x.location,x.str500,x.source,x.medium,x.comment,&x.pool);
+		let wont_work = Work::new(x.work_name,x.adate,x.str500,x.source,x.medium,x.comment,&x.pool);
 	}
 	#[test]	
 	#[ignore]
 	fn source_test() {
 		let x = vars();
-		let should_work = Work::new(x.work_name,x.adate,x.location,x.bequeathment,x.str499,x.medium,x.comment,&x.pool);
+		let should_work = Work::new(x.work_name,x.adate,x.bequeathment,x.str499,x.medium,x.comment,&x.pool);
 	}
 	#[test]
 	#[should_panic]
 	#[ignore]
 	fn source_test_fail() {
 		let x = vars();
-		let wont_work = Work::new(x.work_name,x.adate,x.location,x.bequeathment,x.str500,x.medium,x.comment,&x.pool);
+		let wont_work = Work::new(x.work_name,x.adate,x.bequeathment,x.str500,x.medium,x.comment,&x.pool);
 	}
 	#[test]	
 	#[ignore]
 	fn medium_test() {
 		let x = vars();
-		let should_work = Work::new(x.work_name,x.adate,x.location,x.bequeathment,x.source,x.str99,x.comment,&x.pool);
+		let should_work = Work::new(x.work_name,x.adate,x.bequeathment,x.source,x.str99,x.comment,&x.pool);
 	}
 	#[test]
 	#[should_panic]
 	#[ignore]
 	fn medium_test_fail() {
 		let x = vars();
-		let wont_work = Work::new(x.work_name,x.adate,x.location,x.bequeathment,x.source,x.str100,x.comment,&x.pool);
+		let wont_work = Work::new(x.work_name,x.adate,x.bequeathment,x.source,x.str100,x.comment,&x.pool);
 	}
 }
