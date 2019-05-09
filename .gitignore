@@ -1,2 +1,11 @@
 /target
 **/*.rs.bk
+.env
+
+diesel.toml
+
+migrations/.gitkeep
+
+migrations/2019-04-19-190115_test-migration/down.sql
+
+migrations/2019-04-19-190115_test-migration/up.sql

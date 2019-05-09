@@ -4,5 +4,10 @@ version = "0.1.0"
 authors = ["Grant Merola <grantmerola@gmail.com>"]
 edition = "2018"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
-mysql = "*"
+
+diesel = { version = "1.4.2", features = ["mysql","chrono"] }
+chrono = "0.4.6"
