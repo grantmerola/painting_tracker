@@ -8,6 +8,7 @@ extern crate chrono;
 use chrono::NaiveDate;
 
 
+
 #[derive(Debug)]
 pub struct Work {
 	struct_work_name: String,
@@ -163,7 +164,8 @@ impl Location {
     		new_location
 		}
 }
-pub fn make_new_pool() -> MysqlConnection {
+
+pub fn make_new_conn() -> MysqlConnection {
   	let connection_url = "mysql://root@localhost:3306/test";
 	let conn = MysqlConnection::establish(connection_url).expect(&format!("Error connecting to {}", connection_url));
 	conn
@@ -231,7 +233,7 @@ mod test {
 			fk_works_id: 1,
 			bad_fk_id: 500000,
 			bad_pic_path: Path::new("/Users/gm/Downloads/kurchunk.txt"),
-			pool: make_new_pool()
+			pool: make_new_conn()
 		}
 	}
 	#[test]

@@ -8,6 +8,7 @@ use diesel::mysql::MysqlConnection;
 use painting_tracker::*;
 mod schema;
 use schema::books::dsl::*;
+use wasm_bindgen::prelude::*;
 //use schema::books::*;
 // mirror of our test db
 
@@ -43,6 +44,11 @@ fn main() {
 	// 						));
 	// 				//.execute(&conn);
 	// println!("{:?}",d );
-	
+	#[wasm_bindgen]
+	pub fn call_in_js() -> bool {
+		let h: bool = check_work_id(&make_new_conn(), 2);
+		println!("{:?}", h);
+		h
+	}
 	println!("---------RAN---------");
 }
